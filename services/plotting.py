@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+from scipy.interpolate import make_interp_spline
 
 
 def plot_temperature(canvas, figure, forecasts):
@@ -10,22 +11,39 @@ def plot_temperature(canvas, figure, forecasts):
     figure.clear()
     ax = figure.add_subplot(111)
 
-    # Градиентная линия
-    colors = plt.cm.coolwarm(np.linspace(0, 1, len(temps)))
-    for i in range(len(temps) - 1):
-        ax.plot(times[i:i + 2], temps[i:i + 2], marker="o", linestyle="-", color=colors[i], linewidth=3)
+    # Інтерполяція для гладкої лінії
+    time_nums = np.linspace(0, len(times) - 1, 300)  # Більше точок для плавної кривої
+    time_indices = np.arange(len(times))
+    spline = make_interp_spline(time_indices, temps, k=3)  # Крива Безьє 3-го ступеня
+    smooth_temps = spline(time_nums)
 
-    # Подписи температур
+    # Перетворюємо індекси назад у час
+    smooth_times = np.linspace(times[0].timestamp(), times[-1].timestamp(), 300)
+    smooth_times = [datetime.fromtimestamp(t) for t in smooth_times]
+
+    # Плавний градієнт кольору
+    colors = plt.cm.viridis(np.linspace(0, 1, len(smooth_temps)))
+
+    for i in range(len(smooth_temps) - 1):
+        ax.plot(smooth_times[i:i + 2], smooth_temps[i:i + 2], linestyle="-", color=colors[i], linewidth=3)
+
+    # Підписи тільки на основних точках
     for time, temp in zip(times, temps):
-        ax.text(time, temp + 0.5, f"{temp:.1f}°C", fontsize=12, ha='center', va='bottom', color="#34495e",
+        ax.text(time, temp + 0.5, f"{temp:.1f}°C", fontsize=12, ha='center', va='bottom', color="#2c3e50",
                 fontweight="bold")
 
+    # Оформлення
     ax.set_title("Температура (наступні 24 години)", fontsize=14, fontweight="bold", color="#2c3e50")
     ax.set_xlabel("Час", fontsize=12, color="#2c3e50")
     ax.set_ylabel("Температура (°C)", fontsize=12, color="#2c3e50")
 
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_color("#bbb")
+    ax.spines["bottom"].set_color("#bbb")
+
     ax.tick_params(axis='both', which='major', labelsize=10, colors="#34495e")
-    ax.grid(True, linestyle="--", alpha=0.5)
+    ax.grid(True, linestyle="--", alpha=0.3)  # Легка сітка
 
     figure.autofmt_xdate()
     canvas.draw()
