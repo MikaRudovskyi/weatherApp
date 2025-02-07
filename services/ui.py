@@ -65,12 +65,16 @@ class WeatherApp(QWidget):
         self.favorites_combo.setPlaceholderText("Виберіть місто з обраного")
         self.favorites_combo.currentIndexChanged.connect(self.select_favorite)
 
+        # Текстовий підпис для списку обраних міст
+        self.favorites_label = QLabel("Обрані міста:")
+
         input_layout = QHBoxLayout()
         input_layout.addWidget(self.city_input)
         input_layout.addWidget(self.search_button)
         input_layout.addWidget(self.favorites_button)
 
         buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.favorites_label)
         buttons_layout.addWidget(self.favorites_combo)
         buttons_layout.addWidget(self.delete_favorite_button)
         buttons_layout.addWidget(self.reset_button)
@@ -98,10 +102,16 @@ class WeatherApp(QWidget):
 
         self.setLayout(main_layout)
 
+        # Завантажуємо список обраних міст
+        self.load_favorites()
+
         self.search_button.clicked.connect(self.get_weather)
         self.favorites_button.clicked.connect(self.add_to_favorites)
         self.delete_favorite_button.clicked.connect(self.remove_from_favorites)
         self.reset_button.clicked.connect(self.reset_app)
+
+        # Додаємо обробник події для Enter на полі введення
+        self.city_input.returnPressed.connect(self.get_weather)
 
     def get_weather(self):
         city = self.city_input.text().strip()
@@ -161,7 +171,10 @@ class WeatherApp(QWidget):
         if city not in favorites:
             favorites.append(city)
             self.save_favorites(favorites)
-            self.favorites_combo.addItem(city)
+
+            # Оновлюємо випадаючий список
+            self.favorites_combo.clear()
+            self.favorites_combo.addItems(favorites)
 
     def remove_from_favorites(self):
         city = self.favorites_combo.currentText()
@@ -187,12 +200,21 @@ class WeatherApp(QWidget):
                 widget.deleteLater()
 
     def load_favorites(self):
+        """Завантажуємо список обраних міст з файлу"""
         if os.path.exists(self.FAVORITES_FILE):
             with open(self.FAVORITES_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return []
+                favorites = json.load(f)
+        else:
+            favorites = []
+
+        # Додаємо всі міста в випадаючий список
+        self.favorites_combo.clear()  # Очищаємо старі елементи
+        self.favorites_combo.addItems(favorites)  # Додаємо нові елементи з файлу
+
+        return favorites
 
     def save_favorites(self, favorites):
+        """Зберігаємо обрані міста в файл"""
         with open(self.FAVORITES_FILE, "w", encoding="utf-8") as f:
             json.dump(favorites, f, ensure_ascii=False, indent=4)
 
