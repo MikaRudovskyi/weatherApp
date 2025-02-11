@@ -2,7 +2,7 @@ import json
 import os
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
-    QScrollArea, QFrame, QComboBox
+    QScrollArea, QFrame, QComboBox, QApplication
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from services.api import get_weather_data
 from services.plotting import plot_temperature
 from services.utils import get_weather_icon_path, create_forecast_card
+
 
 class WeatherApp(QWidget):
     FAVORITES_FILE = "favorites.json"
@@ -23,7 +24,13 @@ class WeatherApp(QWidget):
 
     def initUI(self):
         self.setWindowTitle("Прогноз погоди")
-        self.setGeometry(100, 100, 900, 650)
+
+        # Встановлюємо початковий розмір вікна
+        self.resize(1280, 720)  # Розмір вікна можна змінювати
+
+        # Центруємо вікно
+        self.center_window()
+
         self.setStyleSheet("""
             QWidget {
                 background-color: #f5f7fa;
@@ -112,6 +119,16 @@ class WeatherApp(QWidget):
 
         # Додаємо обробник події для Enter на полі введення
         self.city_input.returnPressed.connect(self.get_weather)
+
+    def center_window(self):
+        """Центруємо вікно на екрані"""
+        screen_geometry = QApplication.primaryScreen().geometry()  # Отримуємо геометрію екрану
+        window_geometry = self.frameGeometry()  # Отримуємо геометрію вікна
+
+        # Розраховуємо координати для центрування
+        x = (screen_geometry.width() - window_geometry.width()) // 2
+        y = (screen_geometry.height() - window_geometry.height()) // 2
+        self.move(x, y)  # Переміщаємо вікно в центр
 
     def get_weather(self):
         city = self.city_input.text().strip()
