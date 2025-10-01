@@ -25,10 +25,8 @@ class WeatherApp(QWidget):
     def initUI(self):
         self.setWindowTitle("Прогноз погоди")
 
-        # Встановлюємо початковий розмір вікна
-        self.resize(1280, 720)  # Розмір вікна можна змінювати
+        self.resize(1280, 720)
 
-        # Центруємо вікно
         self.center_window()
 
         self.setStyleSheet("""
@@ -67,12 +65,10 @@ class WeatherApp(QWidget):
         self.delete_favorite_button = QPushButton("🗑 Видалити з обраного")
         self.reset_button = QPushButton("🔄 Скинути")
 
-        # Випадаючий список для обраних міст
         self.favorites_combo = QComboBox()
         self.favorites_combo.setPlaceholderText("Виберіть місто з обраного")
         self.favorites_combo.currentIndexChanged.connect(self.select_favorite)
 
-        # Текстовий підпис для списку обраних міст
         self.favorites_label = QLabel("Обрані міста:")
 
         input_layout = QHBoxLayout()
@@ -109,7 +105,6 @@ class WeatherApp(QWidget):
 
         self.setLayout(main_layout)
 
-        # Завантажуємо список обраних міст
         self.load_favorites()
 
         self.search_button.clicked.connect(self.get_weather)
@@ -117,18 +112,15 @@ class WeatherApp(QWidget):
         self.delete_favorite_button.clicked.connect(self.remove_from_favorites)
         self.reset_button.clicked.connect(self.reset_app)
 
-        # Додаємо обробник події для Enter на полі введення
         self.city_input.returnPressed.connect(self.get_weather)
 
     def center_window(self):
-        """Центруємо вікно на екрані"""
-        screen_geometry = QApplication.primaryScreen().geometry()  # Отримуємо геометрію екрану
-        window_geometry = self.frameGeometry()  # Отримуємо геометрію вікна
+        screen_geometry = QApplication.primaryScreen().geometry()
+        window_geometry = self.frameGeometry()
 
-        # Розраховуємо координати для центрування
         x = (screen_geometry.width() - window_geometry.width()) // 2
         y = (screen_geometry.height() - window_geometry.height()) // 2
-        self.move(x, y)  # Переміщаємо вікно в центр
+        self.move(x, y)
 
     def get_weather(self):
         city = self.city_input.text().strip()
@@ -189,7 +181,6 @@ class WeatherApp(QWidget):
             favorites.append(city)
             self.save_favorites(favorites)
 
-            # Оновлюємо випадаючий список
             self.favorites_combo.clear()
             self.favorites_combo.addItems(favorites)
 
@@ -205,7 +196,6 @@ class WeatherApp(QWidget):
             self.favorites_combo.removeItem(self.favorites_combo.currentIndex())
 
     def reset_app(self):
-        """Скидає сторінку до початкового стану"""
         self.city_input.clear()
         self.current_weather.setText("Інформація про погоду з'явиться тут.")
         self.figure.clear()
@@ -217,21 +207,18 @@ class WeatherApp(QWidget):
                 widget.deleteLater()
 
     def load_favorites(self):
-        """Завантажуємо список обраних міст з файлу"""
         if os.path.exists(self.FAVORITES_FILE):
             with open(self.FAVORITES_FILE, "r", encoding="utf-8") as f:
                 favorites = json.load(f)
         else:
             favorites = []
 
-        # Додаємо всі міста в випадаючий список
-        self.favorites_combo.clear()  # Очищаємо старі елементи
-        self.favorites_combo.addItems(favorites)  # Додаємо нові елементи з файлу
+        self.favorites_combo.clear()
+        self.favorites_combo.addItems(favorites)
 
         return favorites
 
     def save_favorites(self, favorites):
-        """Зберігаємо обрані міста в файл"""
         with open(self.FAVORITES_FILE, "w", encoding="utf-8") as f:
             json.dump(favorites, f, ensure_ascii=False, indent=4)
 
